@@ -1,0 +1,30 @@
+import 'package:ecommerce_app_huma_volve/features/home/models/categories_model.dart';
+import 'package:ecommerce_app_huma_volve/features/home/models/products_model.dart';
+
+abstract class HomeState {}
+
+final class HomeInitial extends HomeState {}
+
+final class CategoriesLoading extends HomeState {}
+
+final class CategoriesSuccess extends HomeState {
+  final List<CategoriesModel> categories;
+  CategoriesSuccess(this.categories);
+}
+
+final class CategoriesError extends HomeState {
+  final String message;
+  CategoriesError(this.message);
+}
+
+final class ProductsLoading extends HomeState {}
+
+final class ProductsSuccess extends HomeState {
+  final List<ProductsModel> products;
+  ProductsSuccess(this.products);
+}
+
+final class ProductsError extends HomeState {
+  final String message;
+  ProductsError(this.message);
+}
