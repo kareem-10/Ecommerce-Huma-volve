@@ -1,4 +1,7 @@
+import 'package:ecommerce_app_huma_volve/features/home/cubit/home_cubit.dart';
+import 'package:ecommerce_app_huma_volve/features/home/cubit/home_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/dummy_data.dart';
 import '../../../core/theme.dart';
@@ -14,6 +17,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategoryIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomeCubit>()
+      ..getCategories()
+      ..getProducts(1);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,25 +119,51 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    SizedBox(
-                      height: 44,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: dummyCategories.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(width: 12),
-                        itemBuilder: (context, index) {
-                          return CategoryChip(
-                            label: dummyCategories[index],
-                            isSelected: _selectedCategoryIndex == index,
-                            onTap: () {
-                              setState(() {
-                                _selectedCategoryIndex = index;
-                              });
-                            },
+                    BlocBuilder<HomeCubit, HomeState>(
+                      buildWhen: (previous, current) =>
+                          current is CategoriesLoading ||
+                          current is CategoriesSuccess ||
+                          current is CategoriesError,
+
+                      builder: (context, state) {
+                        if (state is CategoriesLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
                           );
-                        },
-                      ),
+                        }
+
+                        if (state is CategoriesError) {
+                          return Center(child: Text(state.message));
+                        }
+                        if (state is CategoriesSuccess) {
+                          final categories = state.categories;
+                          return SizedBox(
+                            height: 44,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: categories.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(width: 12),
+                              itemBuilder: (context, index) {
+                                return CategoryChip(
+                                  label: categories[index].name ?? '',
+                                  isSelected: _selectedCategoryIndex == index,
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedCategoryIndex = index;
+                                    });
+                                    context.read<HomeCubit>().getProducts(
+                                      categories[index].id,
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          );
+                        }
+
+                        return const SizedBox.shrink();
+                      },
                     ),
                   ],
                 ),
@@ -134,16 +171,42 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.7,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  return ProductCard(product: dummyProducts[index]);
-                }, childCount: dummyProducts.length),
+              sliver: BlocBuilder<HomeCubit, HomeState>(
+                buildWhen: (previous, current) =>
+                    current is ProductsLoading ||
+                    current is ProductsSuccess ||
+                    current is ProductsError,
+                builder: (context, state) {
+                  if (state is ProductsLoading) {
+                    return const SliverToBoxAdapter(
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (state is ProductsError) {
+                    return SliverToBoxAdapter(
+                      child: Center(child: Text(state.message)),
+                    );
+                  }
+
+                  if (state is ProductsSuccess) {
+                    final product = state.products;
+                    SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.7,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        return ProductCard(product: product[index]);
+                      }, childCount: product.length),
+                    );
+                  }
+
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                },
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
