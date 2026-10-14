@@ -1,10 +1,4 @@
-import 'package:ecommerce_app_huma_volve/core/network/api_client.dart';
-import 'package:ecommerce_app_huma_volve/features/home/data/data_source/home_remote_datasource.dart';
-import 'package:ecommerce_app_huma_volve/features/home/data/data_source/home_remote_datasource_imp.dart';
-import 'package:ecommerce_app_huma_volve/features/home/data/repositories/home_repository_imp.dart';
-import 'package:ecommerce_app_huma_volve/features/home/domain/repositories/home_repository.dart';
-import 'package:ecommerce_app_huma_volve/features/home/domain/use_cases/home_category_usecase.dart';
-import 'package:ecommerce_app_huma_volve/features/home/domain/use_cases/home_product_usecase.dart';
+import 'package:ecommerce_app_huma_volve/core/di/dependancy_injection.dart';
 import 'package:ecommerce_app_huma_volve/features/home/presentation/view_model/cubit/home_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,37 +17,16 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
-  late final ApiClient apiClient;
-  late final HomeRemoteDatasource homeRemoteDatasource;
-  late final HomeRepository homeRepository;
-  late final HomeProductUsecase homeProductUsecase;
-  late final HomeCategoryUsecase homeCategoryUsecase;
-  late final HomeCubit homeCubit;
 
   @override
   void initState() {
-    apiClient = ApiClient();
-    homeRemoteDatasource = HomeRemoteDatasourceImp(apiClient);
-    homeRepository = HomeRepositoryImp(homeRemoteDatasource);
-    homeProductUsecase = HomeProductUsecase(homeRepository);
-    homeCategoryUsecase = HomeCategoryUsecase(homeRepository);
-    homeCubit = HomeCubit(
-      homeCategoryUsecase: homeCategoryUsecase,
-      homeProductUsecase: homeProductUsecase,
-    );
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    homeCubit.close();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
-      BlocProvider.value(value: homeCubit, child: const HomeScreen()),
+      BlocProvider.value(value: getIt<HomeCubit>(), child: const HomeScreen()),
       const CartScreen(),
       const ProfileScreen(),
     ];

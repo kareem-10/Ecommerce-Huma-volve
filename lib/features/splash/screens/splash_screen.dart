@@ -1,9 +1,12 @@
+import 'package:ecommerce_app_huma_volve/core/di/dependancy_injection.dart';
 import 'package:ecommerce_app_huma_volve/core/storage/secure_storage.dart';
+import 'package:ecommerce_app_huma_volve/features/auth/presentation/view_model/cubit/login_cubit.dart';
 import 'package:ecommerce_app_huma_volve/features/main_navigation/screens/main_navigation_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme.dart';
-import '../../auth/login/screens/login_screen.dart';
+import '../../auth/presentation/view/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -42,7 +45,10 @@ class _SplashScreenState extends State<SplashScreen> {
           context,
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
-                const LoginScreen(),
+                BlocProvider(
+                  create: (context) => getIt<LoginCubit>(),
+                  child: const LoginScreen(),
+                ),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
                   return FadeTransition(opacity: animation, child: child);

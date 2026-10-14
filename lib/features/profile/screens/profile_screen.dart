@@ -1,10 +1,13 @@
+import 'package:ecommerce_app_huma_volve/core/di/dependancy_injection.dart';
 import 'package:ecommerce_app_huma_volve/core/storage/secure_storage.dart';
+import 'package:ecommerce_app_huma_volve/features/auth/presentation/view_model/cubit/login_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/dummy_data.dart';
 import '../../../core/theme.dart';
 import '../widgets/profile_menu_item.dart';
-import '../../auth/login/screens/login_screen.dart';
+import '../../auth/presentation/view/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -97,11 +100,12 @@ class ProfileScreen extends StatelessWidget {
                         // ignore: use_build_context_synchronously
                         context,
                         PageRouteBuilder(
-                          pageBuilder: (
-                            context,
-                            animation,
-                            secondaryAnimation,
-                          ) => const LoginScreen(),
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  BlocProvider(
+                                    create: (context) => getIt<LoginCubit>(),
+                                    child: const LoginScreen(),
+                                  ),
                           transitionsBuilder:
                               (context, animation, secondaryAnimation, child) {
                                 return FadeTransition(

@@ -1,13 +1,13 @@
-import 'package:dio/dio.dart';
 import 'package:ecommerce_app_huma_volve/core/network/api_client.dart';
-import 'package:ecommerce_app_huma_volve/features/auth/sign_up/models/signup_req_model.dart';
-import 'package:ecommerce_app_huma_volve/features/auth/sign_up/services/signup_service.dart';
+import 'package:ecommerce_app_huma_volve/features/auth/domain/entities/signup_req_entity.dart';
+import 'package:ecommerce_app_huma_volve/features/auth/presentation/view_model/cubit/signup_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/theme.dart';
-import '../../login/screens/login_screen.dart';
+import 'login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -22,7 +22,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
   late final ApiClient apiClient;
-  late final SignupService signupService;
   bool isLoading = false;
 
   @override
@@ -31,7 +30,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     emailController = TextEditingController();
     passwordController = TextEditingController();
     apiClient = ApiClient();
-    signupService = SignupService(apiClient: apiClient);
 
     super.initState();
   }
@@ -117,42 +115,82 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 40),
-                PrimaryButton(
-                  text: 'Sign Up',
-                  isLoading: isLoading,
-                  onPressed: () async {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      try {
-                        setState(() => isLoading = true);
-                        final response = await signupService.signup(
-                          SignupReqModel(
-                            name: nameController.text,
-                            email: emailController.text.trim(),
-                            password: passwordController.text.trim(),
-                          ),
-                        );
-                        setState(() => isLoading = false);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Sign up successful'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                        );
-                      } on DioException catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(e.toString()),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
+                BlocConsumer<SignupCubit, AuthState>(
+                  listener: (context, state) {
+                    if (state is SignupLoading) {
+                      setState(() => isLoading = true);
                     }
+                    if (state is SignupError) {
+                      setState(() => isLoading = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.errorMessage),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                    if (state is SignupSuccess) {
+                      setState(() => isLoading = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Sign up successful'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    final cubit = context.read<SignupCubit>();
+                    return PrimaryButton(
+                      text: 'Sign Up',
+                      isLoading: isLoading,
+                      onPressed: () async {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          cubit.signup(
+                            SignupReqEntity(
+                              name: nameController.text,
+                              email: emailController.text.trim(),
+                              password: passwordController.text.trim(),
+                            ),
+                          );
+                          // try {
+                          //   final response = await cubit.signup(
+                          //     SignupReqModel(
+                          //       name: nameController.text,
+                          //       email: emailController.text.trim(),
+                          //       password: passwordController.text.trim(),
+                          //     ),
+                          //   );
+                          //   setState(() => isLoading = false);
+                          //   ScaffoldMessenger.of(context).showSnackBar(
+                          //     SnackBar(
+                          //       content: Text('Sign up successful'),
+                          //       backgroundColor: Colors.green,
+                          //     ),
+                          //   );
+                          //   Navigator.pushReplacement(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //       builder: (context) => const LoginScreen(),
+                          //     ),
+                          //   );
+                          // } on DioException catch (e) {
+                          //   ScaffoldMessenger.of(context).showSnackBar(
+                          //     SnackBar(
+                          //       content: Text(e.toString()),
+                          //       backgroundColor: Colors.red,
+                          //     ),
+                          //   );
+                          // }
+                        }
+                      },
+                    );
                   },
                 ),
                 const SizedBox(height: 24),

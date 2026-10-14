@@ -6,10 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class HomeCubit extends Cubit<HomeState> {
   final HomeCategoryUsecase homeCategoryUsecase;
   final HomeProductUsecase homeProductUsecase;
-  HomeCubit({
-    required this.homeCategoryUsecase,
-    required this.homeProductUsecase,
-  }) : super(HomeInitial());
+  HomeCubit(this.homeCategoryUsecase, this.homeProductUsecase)
+    : super(HomeInitial());
 
   void getCategories() async {
     emit(CategoriesLoading());
