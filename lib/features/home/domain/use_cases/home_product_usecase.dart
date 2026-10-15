@@ -9,6 +9,12 @@ class HomeProductUsecase {
   HomeProductUsecase(this.homeRepository);
 
   Future<Either<Failure, List<HomeProductsEntity>>> call(
-    int? categoryId,
-  ) async => await homeRepository.getProducts(categoryId);
+    int? categoryId, {
+    required int limit,
+    required int offset,
+  }) async => await homeRepository.getProducts(
+    categoryId,
+    limit: limit,
+    offset: offset,
+  );
 }

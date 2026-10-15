@@ -17,13 +17,23 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategoryIndex = 0;
+  late final ScrollController scrollController;
 
   @override
   void initState() {
     super.initState();
+    scrollController = ScrollController();
+    scrollController.addListener(_onListen);
     context.read<HomeCubit>()
       ..getCategories()
       ..getProducts(1);
+  }
+
+  void _onListen() {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
+      context.read<HomeCubit>().loadMoreProducts();
+    }
   }
 
   @override
@@ -32,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppTheme.background,
       body: SafeArea(
         child: CustomScrollView(
+          controller: scrollController,
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
@@ -146,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   const SizedBox(width: 12),
                               itemBuilder: (context, index) {
                                 return CategoryChip(
-                                  label: categories[index].name ?? '',
+                                  label: categories[index].name,
                                   isSelected: _selectedCategoryIndex == index,
                                   onTap: () {
                                     setState(() {
@@ -208,6 +219,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   return const SliverToBoxAdapter(child: SizedBox.shrink());
                 },
               ),
+            ),
+
+            BlocBuilder<HomeCubit, HomeState>(
+              builder: (BuildContext context, HomeState state) {
+                if (state is ProductLoadingMore) {
+                  return const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  );
+                }
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              },
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
